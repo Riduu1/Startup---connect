@@ -1,0 +1,31 @@
+{
+  "hash": "f2d22fe0",
+  "configHash": "2a56b8f0",
+  "lockfileHash": "74eba875",
+  "browserHash": "c6514677",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "104c36bb",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "26e31d23",
+      "needsInterop": true
+    },
+    "@radix-ui/react-tooltip": {
+      "src": "../../node_modules/@radix-ui/react-tooltip/dist/index.mjs",
+      "file": "@radix-ui_react-tooltip.js",
+      "fileHash": "51d94321",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-UTEJFLXC": {
+      "file": "chunk-UTEJFLXC.js"
+    }
+  }
+}
