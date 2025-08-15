@@ -85,13 +85,13 @@ const Investors = () => {
 
   const filteredInvestors = investors.filter(investor => {
     const matchesSearch = investor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         investor.bio.toLowerCase().includes(searchTerm.toLowerCase());
+      investor.bio.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || investor.type === typeFilter;
-    const matchesIndustry = industryFilter === "all" || 
-                           investor.industries.some(industry => 
-                             industry.toLowerCase().includes(industryFilter.toLowerCase())
-                           );
-    
+    const matchesIndustry = industryFilter === "all" ||
+      investor.industries.some(industry =>
+        industry.toLowerCase().includes(industryFilter.toLowerCase())
+      );
+
     return matchesSearch && matchesType && matchesIndustry;
   });
 
@@ -127,13 +127,13 @@ const Investors = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-4 items-center">
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Filters:</span>
                 </div>
-                
+
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="w-32">
                     <SelectValue placeholder="Type" />
@@ -146,7 +146,7 @@ const Investors = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={industryFilter} onValueChange={setIndustryFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Industry" />

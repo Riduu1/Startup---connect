@@ -86,10 +86,10 @@ const Startups = () => {
 
   const filteredStartups = startups.filter(startup => {
     const matchesSearch = startup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         startup.description.toLowerCase().includes(searchTerm.toLowerCase());
+      startup.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesIndustry = industryFilter === "all" || startup.industry === industryFilter;
     const matchesStage = stageFilter === "all" || startup.stage === stageFilter;
-    
+
     return matchesSearch && matchesIndustry && matchesStage;
   });
 
@@ -125,13 +125,13 @@ const Startups = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-4 items-center">
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Filters:</span>
                 </div>
-                
+
                 <Select value={industryFilter} onValueChange={setIndustryFilter}>
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Industry" />
@@ -144,7 +144,7 @@ const Startups = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={stageFilter} onValueChange={setStageFilter}>
                   <SelectTrigger className="w-32">
                     <SelectValue placeholder="Stage" />

@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 const Dashboard = () => {
   const { toast } = useToast();
 
-
   // Real user data from backend
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -68,22 +67,90 @@ const Dashboard = () => {
     portfolio: "",
   });
 
-  const handleStartupSubmit = (e: React.FormEvent) => {
+  // State for submitted startups/investors
+  const [myStartups, setMyStartups] = useState<any[]>([]);
+  const [myInvestor, setMyInvestor] = useState<any>(null);
+
+  // Fetch submitted startups/investor profile for the logged-in user
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem("token");
+    if (user.role === "Startup Owner") {
+      fetch("/api/startups", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.data)) {
+            setMyStartups(data.data.filter((s) => s.owner._id === user._id));
+          }
+        });
+    } else if (user.role === "Investor") {
+      fetch("/api/investors", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.data)) {
+            setMyInvestor(data.data.find((i) => i.user._id === user._id));
+          }
+        });
+    }
+  }, [user]);
+
+  // Submit startup
+  const handleStartupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Backend Required",
-      description: "Please connect to Supabase to save startup data.",
-      variant: "destructive",
-    });
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("/api/startups", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(startupForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Startup Saved", description: "Your startup profile was saved.", variant: "default" });
+        setMyStartups((prev) => [...prev, data.data]);
+        setStartupForm({ name: "", description: "", industry: "", stage: "", location: "", teamSize: "", fundingGoal: "", website: "" });
+      } else {
+        toast({ title: "Error", description: data.message || "Failed to save startup.", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Network Error", description: "Could not connect to server.", variant: "destructive" });
+    }
   };
 
-  const handleInvestorSubmit = (e: React.FormEvent) => {
+  // Submit investor profile
+  const handleInvestorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Backend Required",
-      description: "Please connect to Supabase to save investor data.",
-      variant: "destructive",
-    });
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("/api/investors", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...investorForm,
+          industries: investorForm.industries.split(",").map((i) => i.trim()),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({ title: "Investor Profile Saved", description: "Your investor profile was saved.", variant: "default" });
+        setMyInvestor(data.data);
+        setInvestorForm({ name: "", bio: "", type: "", location: "", industries: "", investmentRange: "", portfolio: "" });
+      } else {
+        toast({ title: "Error", description: data.message || "Failed to save investor profile.", variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Network Error", description: "Could not connect to server.", variant: "destructive" });
+    }
   };
 
   const stats = [
@@ -139,287 +206,186 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* Profile Forms */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <Tabs defaultValue={user.role === "founder" ? "startup" : "investor"} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="startup">Startup Profile</TabsTrigger>
-                  <TabsTrigger value="investor">Investor Profile</TabsTrigger>
-                </TabsList>
-
-                {/* Startup Form */}
-                <TabsContent value="startup">
-                  <Card className="border-0 shadow-card">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Building2 className="h-5 w-5 text-primary" />
-                        <span>Startup Information</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Provide details about your startup to attract potential investors
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleStartupSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="startup-name">Startup Name</Label>
-                            <Input
-                              id="startup-name"
-                              value={startupForm.name}
-                              onChange={(e) => setStartupForm({ ...startupForm, name: e.target.value })}
-                              placeholder="Enter your startup name"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="industry">Industry</Label>
-                            <Select value={startupForm.industry} onValueChange={(value) => setStartupForm({ ...startupForm, industry: value })}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select industry" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="ai-ml">AI/ML</SelectItem>
-                                <SelectItem value="fintech">FinTech</SelectItem>
-                                <SelectItem value="healthtech">HealthTech</SelectItem>
-                                <SelectItem value="edtech">EdTech</SelectItem>
-                                <SelectItem value="cleantech">CleanTech</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={startupForm.description}
-                            onChange={(e) => setStartupForm({ ...startupForm, description: e.target.value })}
-                            placeholder="Describe your startup, its mission, and value proposition..."
-                            rows={4}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="stage">Funding Stage</Label>
-                            <Select value={startupForm.stage} onValueChange={(value) => setStartupForm({ ...startupForm, stage: value })}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select stage" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="idea">Idea Stage</SelectItem>
-                                <SelectItem value="pre-seed">Pre-Seed</SelectItem>
-                                <SelectItem value="seed">Seed</SelectItem>
-                                <SelectItem value="series-a">Series A</SelectItem>
-                                <SelectItem value="series-b">Series B</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="location">Location</Label>
-                            <Input
-                              id="location"
-                              value={startupForm.location}
-                              onChange={(e) => setStartupForm({ ...startupForm, location: e.target.value })}
-                              placeholder="City, State"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="team-size">Team Size</Label>
-                            <Input
-                              id="team-size"
-                              type="number"
-                              value={startupForm.teamSize}
-                              onChange={(e) => setStartupForm({ ...startupForm, teamSize: e.target.value })}
-                              placeholder="5"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="funding-goal">Funding Goal</Label>
-                            <Input
-                              id="funding-goal"
-                              value={startupForm.fundingGoal}
-                              onChange={(e) => setStartupForm({ ...startupForm, fundingGoal: e.target.value })}
-                              placeholder="$500K"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="website">Website</Label>
-                            <Input
-                              id="website"
-                              type="url"
-                              value={startupForm.website}
-                              onChange={(e) => setStartupForm({ ...startupForm, website: e.target.value })}
-                              placeholder="https://yourstartup.com"
-                            />
-                          </div>
-                        </div>
-
-                        <Button type="submit" variant="hero" className="w-full">
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Startup Profile
-                        </Button>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Investor Form */}
-                <TabsContent value="investor">
-                  <Card className="border-0 shadow-card">
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <TrendingUp className="h-5 w-5 text-accent" />
-                        <span>Investor Information</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Share your investment preferences and experience to connect with relevant startups
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleInvestorSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="investor-name">Name/Fund Name</Label>
-                            <Input
-                              id="investor-name"
-                              value={investorForm.name}
-                              onChange={(e) => setInvestorForm({ ...investorForm, name: e.target.value })}
-                              placeholder="Your name or fund name"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="investor-type">Investor Type</Label>
-                            <Select value={investorForm.type} onValueChange={(value) => setInvestorForm({ ...investorForm, type: value })}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="angel">Angel Investor</SelectItem>
-                                <SelectItem value="vc">Venture Capital</SelectItem>
-                                <SelectItem value="fund">Investment Fund</SelectItem>
-                                <SelectItem value="corporate">Corporate Investor</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="bio">Bio</Label>
-                          <Textarea
-                            id="bio"
-                            value={investorForm.bio}
-                            onChange={(e) => setInvestorForm({ ...investorForm, bio: e.target.value })}
-                            placeholder="Describe your investment background, experience, and what you're looking for..."
-                            rows={4}
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="investor-location">Location</Label>
-                            <Input
-                              id="investor-location"
-                              value={investorForm.location}
-                              onChange={(e) => setInvestorForm({ ...investorForm, location: e.target.value })}
-                              placeholder="City, State"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="investment-range">Investment Range</Label>
-                            <Input
-                              id="investment-range"
-                              value={investorForm.investmentRange}
-                              onChange={(e) => setInvestorForm({ ...investorForm, investmentRange: e.target.value })}
-                              placeholder="$25K - $250K"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="industries">Preferred Industries</Label>
-                            <Input
-                              id="industries"
-                              value={investorForm.industries}
-                              onChange={(e) => setInvestorForm({ ...investorForm, industries: e.target.value })}
-                              placeholder="AI/ML, FinTech, HealthTech"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="portfolio">Portfolio Size</Label>
-                            <Input
-                              id="portfolio"
-                              type="number"
-                              value={investorForm.portfolio}
-                              onChange={(e) => setInvestorForm({ ...investorForm, portfolio: e.target.value })}
-                              placeholder="15"
-                            />
-                          </div>
-                        </div>
-
-                        <Button type="submit" variant="accent" className="w-full">
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Investor Profile
-                        </Button>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-6">
+          {/* Role-based dashboard */}
+          {user.role === "Startup Owner" ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Startup Submission Form */}
               <Card className="border-0 shadow-card">
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>Common tasks and shortcuts</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Event
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Users className="h-4 w-4 mr-2" />
-                    Browse Network
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    View Analytics
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-card">
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    <span>Submit Your Startup</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Provide details about your startup to attract potential investors
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4 text-sm">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-primary rounded-full"></div>
-                      <span className="text-muted-foreground">Profile viewed by 3 investors</span>
+                  <form onSubmit={handleStartupSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">Startup Name</Label>
+                        <Input id="name" value={startupForm.name} onChange={(e) => setStartupForm({ ...startupForm, name: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="industry">Industry</Label>
+                        <Input id="industry" value={startupForm.industry} onChange={(e) => setStartupForm({ ...startupForm, industry: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="stage">Stage</Label>
+                        <Select value={startupForm.stage} onValueChange={(value) => setStartupForm({ ...startupForm, stage: value })} required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select stage" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Idea">Idea</SelectItem>
+                            <SelectItem value="Prototype">Prototype</SelectItem>
+                            <SelectItem value="MVP">MVP</SelectItem>
+                            <SelectItem value="Revenue">Revenue</SelectItem>
+                            <SelectItem value="Growth">Growth</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="location">Location</Label>
+                        <Input id="location" value={startupForm.location} onChange={(e) => setStartupForm({ ...startupForm, location: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="teamSize">Team Size</Label>
+                        <Input id="teamSize" value={startupForm.teamSize} onChange={(e) => setStartupForm({ ...startupForm, teamSize: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="fundingGoal">Funding Goal</Label>
+                        <Input id="fundingGoal" value={startupForm.fundingGoal} onChange={(e) => setStartupForm({ ...startupForm, fundingGoal: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="website">Website</Label>
+                        <Input id="website" value={startupForm.website} onChange={(e) => setStartupForm({ ...startupForm, website: e.target.value })} />
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-success rounded-full"></div>
-                      <span className="text-muted-foreground">New connection request</span>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea id="description" value={startupForm.description} onChange={(e) => setStartupForm({ ...startupForm, description: e.target.value })} required />
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-accent rounded-full"></div>
-                      <span className="text-muted-foreground">Event reminder: AI Summit</span>
+                    <Button type="submit" variant="hero" className="w-full">
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Startup Profile
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* My Submitted Startups */}
+              <Card className="border-0 shadow-card">
+                <CardHeader>
+                  <CardTitle>My Startups</CardTitle>
+                  <CardDescription>Your submitted startups</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {myStartups.length > 0 ? (
+                    <div className="space-y-4">
+                      {myStartups.map((startup) => (
+                        <div key={startup._id} className="p-4 border rounded-lg bg-white/80">
+                          <div className="font-bold text-lg">{startup.name}</div>
+                          <div className="text-muted-foreground">{startup.industry} | {startup.stage}</div>
+                          <div>{startup.description}</div>
+                          <div className="text-xs text-muted-foreground">{startup.location} | Team: {startup.teamSize} | Funding: {startup.fundingGoal}</div>
+                          {startup.website && (
+                            <a href={startup.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">{startup.website}</a>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-muted-foreground">No startups submitted yet.</div>
+                  )}
                 </CardContent>
               </Card>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Investor Submission Form */}
+              <Card className="border-0 shadow-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="h-5 w-5 text-accent" />
+                    <span>Submit Your Investor Profile</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Share your investment preferences and experience to connect with relevant startups
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleInvestorSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">Name</Label>
+                        <Input id="name" value={investorForm.name} onChange={(e) => setInvestorForm({ ...investorForm, name: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="type">Investor Type</Label>
+                        <Select value={investorForm.type} onValueChange={(value) => setInvestorForm({ ...investorForm, type: value })} required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Angel">Angel</SelectItem>
+                            <SelectItem value="VC">Venture Capital</SelectItem>
+                            <SelectItem value="PE">Private Equity</SelectItem>
+                            <SelectItem value="Crowdfunding">Crowdfunding</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="location">Location</Label>
+                        <Input id="location" value={investorForm.location} onChange={(e) => setInvestorForm({ ...investorForm, location: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="investmentRange">Investment Range</Label>
+                        <Input id="investmentRange" value={investorForm.investmentRange} onChange={(e) => setInvestorForm({ ...investorForm, investmentRange: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="portfolio">Portfolio Size</Label>
+                        <Input id="portfolio" value={investorForm.portfolio} onChange={(e) => setInvestorForm({ ...investorForm, portfolio: e.target.value })} required />
+                      </div>
+                      <div>
+                        <Label htmlFor="industries">Industries</Label>
+                        <Input id="industries" value={investorForm.industries} onChange={(e) => setInvestorForm({ ...investorForm, industries: e.target.value })} required />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="bio">Bio</Label>
+                      <Textarea id="bio" value={investorForm.bio} onChange={(e) => setInvestorForm({ ...investorForm, bio: e.target.value })} required />
+                    </div>
+                    <Button type="submit" variant="accent" className="w-full">
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Investor Profile
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* My Submitted Investor Profile */}
+              <Card className="border-0 shadow-card">
+                <CardHeader>
+                  <CardTitle>My Investor Profile</CardTitle>
+                  <CardDescription>Your submitted investor info</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {myInvestor ? (
+                    <div className="p-4 border rounded-lg bg-white/80">
+                      <div className="font-bold text-lg">{myInvestor.name}</div>
+                      <div className="text-muted-foreground">{myInvestor.type} | {myInvestor.location}</div>
+                      <div>{myInvestor.bio}</div>
+                      <div className="text-xs text-muted-foreground">Industries: {myInvestor.industries?.join(", ")} | Portfolio: {myInvestor.portfolio} | Range: {myInvestor.investmentRange}</div>
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground">No investor profile submitted yet.</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </Layout>
