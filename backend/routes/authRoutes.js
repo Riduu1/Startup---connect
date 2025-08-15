@@ -20,6 +20,25 @@ router.get('/google/callback',
     googleCallback
 );
 
+// @route   GET /api/auth/me
+// @access  Private
+const { protect } = require('../middleware/authMiddleware');
+router.get('/me', protect, (req, res) => {
+    if (!req.user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({
+        success: true,
+        data: {
+            _id: req.user._id,
+            name: req.user.name,
+            email: req.user.email,
+            role: req.user.role,
+            createdAt: req.user.createdAt
+        }
+    });
+});
+
 module.exports = router;
 
 /*

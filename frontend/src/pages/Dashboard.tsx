@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,39 @@ import { useToast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { toast } = useToast();
-  
-  // Mock user data - replace with actual user data from database when connected
-  const [user] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    role: "founder" // or "investor"
-  });
+
+
+  // Real user data from backend
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Not authenticated. Please log in.");
+      setLoading(false);
+      return;
+    }
+    fetch("/api/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          setUser(data.data);
+        } else {
+          setError(data.message || "Failed to fetch user data.");
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Network error. Could not fetch user data.");
+        setLoading(false);
+      });
+  }, []);
 
   const [startupForm, setStartupForm] = useState({
     name: "",
@@ -66,6 +92,13 @@ const Dashboard = () => {
     { label: "Growth Rate", value: "+12%", icon: <TrendingUp className="h-5 w-5" /> },
   ];
 
+  if (loading) {
+    return <Layout><div className="min-h-screen flex items-center justify-center">Loading user data...</div></Layout>;
+  }
+  if (error) {
+    return <Layout><div className="min-h-screen flex items-center justify-center text-red-500">{error}</div></Layout>;
+  }
+
   return (
     <Layout>
       <div className="min-h-screen bg-background">
@@ -76,11 +109,11 @@ const Dashboard = () => {
               <div>
                 <h1 className="text-3xl font-bold">Welcome back, {user.name}!</h1>
                 <p className="text-white/90 mt-2">
-                  Manage your {user.role === "founder" ? "startup profile" : "investor profile"} and track your progress
+                  Manage your {user.role === "Startup Owner" ? "startup profile" : "investor profile"} and track your progress
                 </p>
               </div>
               <Badge variant="secondary" className="text-primary">
-                {user.role === "founder" ? "Startup Founder" : "Investor"}
+                {user.role === "Startup Owner" ? "Startup Founder" : "Investor"}
               </Badge>
             </div>
           </div>
@@ -135,13 +168,13 @@ const Dashboard = () => {
                             <Input
                               id="startup-name"
                               value={startupForm.name}
-                              onChange={(e) => setStartupForm({...startupForm, name: e.target.value})}
+                              onChange={(e) => setStartupForm({ ...startupForm, name: e.target.value })}
                               placeholder="Enter your startup name"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="industry">Industry</Label>
-                            <Select value={startupForm.industry} onValueChange={(value) => setStartupForm({...startupForm, industry: value})}>
+                            <Select value={startupForm.industry} onValueChange={(value) => setStartupForm({ ...startupForm, industry: value })}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select industry" />
                               </SelectTrigger>
@@ -162,7 +195,7 @@ const Dashboard = () => {
                           <Textarea
                             id="description"
                             value={startupForm.description}
-                            onChange={(e) => setStartupForm({...startupForm, description: e.target.value})}
+                            onChange={(e) => setStartupForm({ ...startupForm, description: e.target.value })}
                             placeholder="Describe your startup, its mission, and value proposition..."
                             rows={4}
                           />
@@ -171,7 +204,7 @@ const Dashboard = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="stage">Funding Stage</Label>
-                            <Select value={startupForm.stage} onValueChange={(value) => setStartupForm({...startupForm, stage: value})}>
+                            <Select value={startupForm.stage} onValueChange={(value) => setStartupForm({ ...startupForm, stage: value })}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select stage" />
                               </SelectTrigger>
@@ -189,7 +222,7 @@ const Dashboard = () => {
                             <Input
                               id="location"
                               value={startupForm.location}
-                              onChange={(e) => setStartupForm({...startupForm, location: e.target.value})}
+                              onChange={(e) => setStartupForm({ ...startupForm, location: e.target.value })}
                               placeholder="City, State"
                             />
                           </div>
@@ -202,7 +235,7 @@ const Dashboard = () => {
                               id="team-size"
                               type="number"
                               value={startupForm.teamSize}
-                              onChange={(e) => setStartupForm({...startupForm, teamSize: e.target.value})}
+                              onChange={(e) => setStartupForm({ ...startupForm, teamSize: e.target.value })}
                               placeholder="5"
                             />
                           </div>
@@ -211,7 +244,7 @@ const Dashboard = () => {
                             <Input
                               id="funding-goal"
                               value={startupForm.fundingGoal}
-                              onChange={(e) => setStartupForm({...startupForm, fundingGoal: e.target.value})}
+                              onChange={(e) => setStartupForm({ ...startupForm, fundingGoal: e.target.value })}
                               placeholder="$500K"
                             />
                           </div>
@@ -221,7 +254,7 @@ const Dashboard = () => {
                               id="website"
                               type="url"
                               value={startupForm.website}
-                              onChange={(e) => setStartupForm({...startupForm, website: e.target.value})}
+                              onChange={(e) => setStartupForm({ ...startupForm, website: e.target.value })}
                               placeholder="https://yourstartup.com"
                             />
                           </div>
@@ -256,13 +289,13 @@ const Dashboard = () => {
                             <Input
                               id="investor-name"
                               value={investorForm.name}
-                              onChange={(e) => setInvestorForm({...investorForm, name: e.target.value})}
+                              onChange={(e) => setInvestorForm({ ...investorForm, name: e.target.value })}
                               placeholder="Your name or fund name"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="investor-type">Investor Type</Label>
-                            <Select value={investorForm.type} onValueChange={(value) => setInvestorForm({...investorForm, type: value})}>
+                            <Select value={investorForm.type} onValueChange={(value) => setInvestorForm({ ...investorForm, type: value })}>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select type" />
                               </SelectTrigger>
@@ -281,7 +314,7 @@ const Dashboard = () => {
                           <Textarea
                             id="bio"
                             value={investorForm.bio}
-                            onChange={(e) => setInvestorForm({...investorForm, bio: e.target.value})}
+                            onChange={(e) => setInvestorForm({ ...investorForm, bio: e.target.value })}
                             placeholder="Describe your investment background, experience, and what you're looking for..."
                             rows={4}
                           />
@@ -293,7 +326,7 @@ const Dashboard = () => {
                             <Input
                               id="investor-location"
                               value={investorForm.location}
-                              onChange={(e) => setInvestorForm({...investorForm, location: e.target.value})}
+                              onChange={(e) => setInvestorForm({ ...investorForm, location: e.target.value })}
                               placeholder="City, State"
                             />
                           </div>
@@ -302,7 +335,7 @@ const Dashboard = () => {
                             <Input
                               id="investment-range"
                               value={investorForm.investmentRange}
-                              onChange={(e) => setInvestorForm({...investorForm, investmentRange: e.target.value})}
+                              onChange={(e) => setInvestorForm({ ...investorForm, investmentRange: e.target.value })}
                               placeholder="$25K - $250K"
                             />
                           </div>
@@ -314,7 +347,7 @@ const Dashboard = () => {
                             <Input
                               id="industries"
                               value={investorForm.industries}
-                              onChange={(e) => setInvestorForm({...investorForm, industries: e.target.value})}
+                              onChange={(e) => setInvestorForm({ ...investorForm, industries: e.target.value })}
                               placeholder="AI/ML, FinTech, HealthTech"
                             />
                           </div>
@@ -324,7 +357,7 @@ const Dashboard = () => {
                               id="portfolio"
                               type="number"
                               value={investorForm.portfolio}
-                              onChange={(e) => setInvestorForm({...investorForm, portfolio: e.target.value})}
+                              onChange={(e) => setInvestorForm({ ...investorForm, portfolio: e.target.value })}
                               placeholder="15"
                             />
                           </div>
