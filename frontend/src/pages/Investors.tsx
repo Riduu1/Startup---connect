@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import InvestorCard from "@/components/cards/InvestorCard";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,12 @@ const Investors = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [industryFilter, setIndustryFilter] = useState("all");
 
-  // Mock data - replace with actual data from database when connected
-  const investors = [
+  // State for investors
+  const [realInvestors, setRealInvestors] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Dummy data
+  const dummyInvestors = [
     {
       id: "1",
       name: "Sarah Chen",
@@ -26,64 +30,48 @@ const Investors = () => {
       location: "Palo Alto, CA",
       industries: ["AI/ML", "Developer Tools", "Enterprise SaaS"],
       investmentRange: "$25K - $100K",
-      portfolio: 23
+      portfolio: 23,
+      user: null
     },
-    {
-      id: "2",
-      name: "Venture Capital Partners",
-      bio: "Early-stage VC fund focused on B2B software and marketplace startups. $100M fund with global reach.",
-      type: "VC",
-      location: "New York, NY",
-      industries: ["B2B Software", "Marketplaces", "FinTech"],
-      investmentRange: "$500K - $5M",
-      portfolio: 45
-    },
-    {
-      id: "3",
-      name: "Michael Rodriguez",
-      bio: "Serial entrepreneur and angel investor specializing in healthcare and biotech innovations.",
-      type: "Angel",
-      location: "Boston, MA",
-      industries: ["HealthTech", "BioTech", "Medical Devices"],
-      investmentRange: "$50K - $250K",
-      portfolio: 12
-    },
-    {
-      id: "4",
-      name: "GreenTech Ventures",
-      bio: "Impact-focused fund investing in sustainable technology and clean energy solutions worldwide.",
-      type: "Fund",
-      location: "San Francisco, CA",
-      industries: ["CleanTech", "Sustainability", "Energy"],
-      investmentRange: "$1M - $10M",
-      portfolio: 31
-    },
-    {
-      id: "5",
-      name: "Jennifer Liu",
-      bio: "Former McKinsey partner now investing in consumer tech and e-commerce platforms.",
-      type: "Angel",
-      location: "Los Angeles, CA",
-      industries: ["Consumer Tech", "E-commerce", "Mobile Apps"],
-      investmentRange: "$25K - $150K",
-      portfolio: 18
-    },
-    {
-      id: "6",
-      name: "TechStars Global",
-      bio: "Leading accelerator and venture fund with a global network of startup programs.",
-      type: "Fund",
-      location: "Boulder, CO",
-      industries: ["All Industries", "Early Stage", "Global"],
-      investmentRange: "$100K - $3M",
-      portfolio: 200
-    }
+    // ...other dummy investors, each with user: null ...
   ];
+
+  // Fetch real investors from backend
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("/api/investors", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data)) {
+          setRealInvestors(data.data);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const types = ["all", "Angel", "VC", "Fund"];
   const industries = ["all", "AI/ML", "B2B Software", "HealthTech", "CleanTech", "Consumer Tech", "FinTech"];
 
-  const filteredInvestors = investors.filter(investor => {
+  // Combine dummy and real investors
+  const allInvestors = [
+    ...dummyInvestors,
+    ...realInvestors.map((i) => ({
+      id: i._id,
+      name: i.name,
+      bio: i.bio,
+      type: i.type,
+      location: i.location,
+      industries: i.industries,
+      investmentRange: i.investmentRange,
+      portfolio: i.portfolio,
+      user: i.user,
+    })),
+  ];
+
+  const filteredInvestors = allInvestors.filter(investor => {
     const matchesSearch = investor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       investor.bio.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || investor.type === typeFilter;
@@ -91,7 +79,6 @@ const Investors = () => {
       investor.industries.some(industry =>
         industry.toLowerCase().includes(industryFilter.toLowerCase())
       );
-
     return matchesSearch && matchesType && matchesIndustry;
   });
 
@@ -178,7 +165,12 @@ const Investors = () => {
           {filteredInvestors.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredInvestors.map((investor) => (
-                <InvestorCard key={investor.id} investor={investor} />
+                <div key={investor.id}>
+                  <InvestorCard investor={investor} />
+                  {investor.user && (
+                    <div className="mt-2 text-xs text-muted-foreground">Submitted by: {investor.user.name || investor.user.email}</div>
+                  )}
+                </div>
               ))}
             </div>
           ) : (

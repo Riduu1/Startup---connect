@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import StartupCard from "@/components/cards/StartupCard";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,14 @@ const Startups = () => {
   const [industryFilter, setIndustryFilter] = useState("all");
   const [stageFilter, setStageFilter] = useState("all");
 
-  // Mock data - replace with actual data from database when connected
-  const startups = [
+  // State for startups
+  const [realStartups, setRealStartups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showDetailsId, setShowDetailsId] = useState<string | null>(null);
+
+  // Dummy data
+  const dummyStartups = [
+    // ...same as before...
     {
       id: "1",
       name: "TechFlow AI",
@@ -27,69 +33,53 @@ const Startups = () => {
       location: "San Francisco, CA",
       teamSize: 15,
       fundingGoal: "$2M",
-      website: "https://techflow.ai"
+      website: "https://techflow.ai",
+      owner: null
     },
-    {
-      id: "2",
-      name: "GreenEnergy Solutions",
-      description: "Developing sustainable solar panel technology with 30% higher efficiency than traditional panels.",
-      industry: "CleanTech",
-      stage: "Seed",
-      location: "Austin, TX",
-      teamSize: 8,
-      fundingGoal: "$500K",
-    },
-    {
-      id: "3",
-      name: "HealthTrack Pro",
-      description: "Mobile health monitoring platform that uses IoT devices to track patient vitals in real-time.",
-      industry: "HealthTech",
-      stage: "Pre-Seed",
-      location: "Boston, MA",
-      teamSize: 5,
-      fundingGoal: "$300K",
-    },
-    {
-      id: "4",
-      name: "EduVerse",
-      description: "Virtual reality education platform making immersive learning experiences accessible to schools worldwide.",
-      industry: "EdTech",
-      stage: "Series A",
-      location: "Seattle, WA",
-      teamSize: 22,
-      fundingGoal: "$3M",
-    },
-    {
-      id: "5",
-      name: "FoodieDelivery",
-      description: "Hyperlocal food delivery service focused on connecting users with authentic local restaurants.",
-      industry: "FoodTech",
-      stage: "Seed",
-      location: "New York, NY",
-      teamSize: 12,
-      fundingGoal: "$1.5M",
-    },
-    {
-      id: "6",
-      name: "CryptoSecure",
-      description: "Blockchain-based security platform providing enterprise-grade encryption and data protection.",
-      industry: "Blockchain",
-      stage: "Series A",
-      location: "Miami, FL",
-      teamSize: 18,
-      fundingGoal: "$4M",
-    }
+    // ...other dummy startups, each with owner: null ...
   ];
+
+  // Fetch real startups from backend
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("/api/startups", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data)) {
+          setRealStartups(data.data);
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   const industries = ["all", "AI/ML", "CleanTech", "HealthTech", "EdTech", "FoodTech", "Blockchain"];
   const stages = ["all", "Pre-Seed", "Seed", "Series A", "Series B"];
 
-  const filteredStartups = startups.filter(startup => {
+  // Combine dummy and real startups
+  const allStartups = [
+    ...dummyStartups,
+    ...realStartups.map((s) => ({
+      id: s._id,
+      name: s.name,
+      description: s.description,
+      industry: s.industry,
+      stage: s.stage,
+      location: s.location,
+      teamSize: s.teamSize,
+      fundingGoal: s.fundingGoal,
+      website: s.website,
+      owner: s.owner,
+    })),
+  ];
+
+  const filteredStartups = allStartups.filter(startup => {
     const matchesSearch = startup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       startup.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesIndustry = industryFilter === "all" || startup.industry === industryFilter;
     const matchesStage = stageFilter === "all" || startup.stage === stageFilter;
-
     return matchesSearch && matchesIndustry && matchesStage;
   });
 
@@ -176,7 +166,34 @@ const Startups = () => {
           {filteredStartups.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredStartups.map((startup) => (
-                <StartupCard key={startup.id} startup={startup} />
+                <div key={startup.id}>
+                  <StartupCard startup={startup} />
+                  {/* <Button variant="outline" className="mt-2 w-full" onClick={() => setShowDetailsId(startup.id)}>
+                    Show Details
+                  </Button> */}
+                  {/* Details Modal/Section */}
+                  {showDetailsId === startup.id && (
+                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full relative">
+                        <Button variant="ghost" className="absolute top-2 right-2" onClick={() => setShowDetailsId(null)}>
+                          Close
+                        </Button>
+                        <h3 className="text-2xl font-bold mb-2">{startup.name}</h3>
+                        <div className="mb-2 text-muted-foreground">{startup.industry} | {startup.stage}</div>
+                        <div className="mb-2">{startup.description}</div>
+                        <div className="mb-2 text-sm text-muted-foreground">Location: {startup.location}</div>
+                        <div className="mb-2 text-sm text-muted-foreground">Team Size: {startup.teamSize}</div>
+                        <div className="mb-2 text-sm text-muted-foreground">Funding Goal: {startup.fundingGoal}</div>
+                        {startup.website && (
+                          <a href={startup.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">{startup.website}</a>
+                        )}
+                        {startup.owner && (
+                          <div className="mt-4 text-xs text-muted-foreground">Submitted by: {startup.owner.name || startup.owner.email}</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           ) : (
