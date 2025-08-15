@@ -7,6 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Plus } from "lucide-react";
 
 const Investors = () => {
+  // Protect page: redirect to login if not authenticated
+  if (!localStorage.getItem("token")) {
+    window.location.href = "/login";
+    return null;
+  }
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [industryFilter, setIndustryFilter] = useState("all");
