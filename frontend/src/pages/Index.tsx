@@ -10,22 +10,26 @@ const Index = () => {
     {
       icon: <Rocket className="h-8 w-8 text-primary" />,
       title: "Discover Startups",
-      description: "Explore innovative startups across various industries and connect with founders."
+      description: "Explore innovative startups across various industries and connect with founders.",
+      link: "/startups"
     },
     {
       icon: <Users className="h-8 w-8 text-accent" />,
       title: "Meet Investors",
-      description: "Connect with angel investors, VCs, and funds looking for the next big opportunity."
+      description: "Connect with angel investors, VCs, and funds looking for the next big opportunity.",
+      link: "/investors"
     },
     {
       icon: <TrendingUp className="h-8 w-8 text-success" />,
       title: "Track Growth",
       description: "Monitor startup progress and investment opportunities in real-time."
+      // No link for now
     },
     {
       icon: <Calendar className="h-8 w-8 text-primary" />,
       title: "Join Events",
-      description: "Attend networking events, pitch competitions, and startup meetups."
+      description: "Attend networking events, pitch competitions, and startup meetups.",
+      link: "/events"
     }
   ];
 
@@ -40,13 +44,13 @@ const Index = () => {
     <Layout>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroImage})` }}
         >
           <div className="absolute inset-0 bg-gradient-hero/90"></div>
         </div>
-        
+
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="space-y-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
@@ -54,19 +58,19 @@ const Index = () => {
               <span className="text-white/90 font-medium">Welcome to the Future of Startup Funding</span>
               <Sparkles className="h-6 w-6 text-yellow-400 animate-glow" />
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
               Connect Startups with
               <span className="block text-transparent bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text">
                 Investors
               </span>
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-              The premier platform where innovative startups meet visionary investors. 
+              The premier platform where innovative startups meet visionary investors.
               Discover opportunities, build connections, and shape the future.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to="/signup">
                 <Button variant="gradient" size="lg" className="text-lg px-8 py-3 animate-float">
@@ -111,22 +115,40 @@ const Index = () => {
               Our platform provides all the tools and connections you need to grow your startup or find your next investment opportunity.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center border-0 bg-gradient-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2">
-                <CardHeader>
-                  <div className="mx-auto mb-4 p-3 bg-muted rounded-full w-fit">
-                    {feature.icon}
-                  </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+              feature.link ? (
+                <Link to={feature.link} key={index} className="hover:no-underline">
+                  <Card className="cursor-pointer text-center border-0 bg-gradient-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2">
+                    <CardHeader>
+                      <div className="mx-auto mb-4 p-3 bg-muted rounded-full w-fit">
+                        {feature.icon}
+                      </div>
+                      <CardTitle className="text-xl">{feature.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-base leading-relaxed">
+                        {feature.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ) : (
+                <Card key={index} className="text-center border-0 bg-gradient-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2">
+                  <CardHeader>
+                    <div className="mx-auto mb-4 p-3 bg-muted rounded-full w-fit">
+                      {feature.icon}
+                    </div>
+                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-base leading-relaxed">
+                      {feature.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              )
             ))}
           </div>
         </div>

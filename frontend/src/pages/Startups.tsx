@@ -7,11 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Plus } from "lucide-react";
 
 const Startups = () => {
-  // Protect page: redirect to login if not authenticated
-  if (!localStorage.getItem("token")) {
-    window.location.href = "/login";
-    return null;
-  }
+  // Page is now public; anyone can view
   const [searchTerm, setSearchTerm] = useState("");
   const [industryFilter, setIndustryFilter] = useState("all");
   const [stageFilter, setStageFilter] = useState("all");
@@ -156,7 +152,17 @@ const Startups = () => {
             <h2 className="text-2xl font-semibold">
               {filteredStartups.length} Startup{filteredStartups.length !== 1 ? 's' : ''} Found
             </h2>
-            <Button variant="hero" className="hidden md:flex">
+
+            {/* Make all Add Your Startup buttons redirect to login */}
+            <Button
+              variant="hero"
+              onClick={() => {
+                if (!localStorage.getItem("token")) {
+                  window.location.href = "/login";
+                }
+                // else: do nothing or open your startup submission modal/page
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Your Startup
             </Button>

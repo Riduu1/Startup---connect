@@ -7,11 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Plus } from "lucide-react";
 
 const Investors = () => {
-  // Protect page: redirect to login if not authenticated
-  if (!localStorage.getItem("token")) {
-    window.location.href = "/login";
-    return null;
-  }
+  // Page is now public; anyone can view
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [industryFilter, setIndustryFilter] = useState("all");
@@ -155,7 +151,17 @@ const Investors = () => {
             <h2 className="text-2xl font-semibold">
               {filteredInvestors.length} Investor{filteredInvestors.length !== 1 ? 's' : ''} Found
             </h2>
-            <Button variant="accent" className="hidden md:flex">
+
+            {/* Make all Join as Investor buttons redirect to login */}
+            <Button
+              variant="accent"
+              onClick={() => {
+                if (!localStorage.getItem("token")) {
+                  window.location.href = "/login";
+                }
+                // else: do nothing or open investor join modal/page
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Join as Investor
             </Button>

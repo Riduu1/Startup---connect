@@ -50,6 +50,7 @@ passport.use(new GoogleStrategy({
 app.use('/api/auth', authRoutes);
 app.use('/api/startups', require('./routes/startupRoutes'));
 app.use('/api/investors', require('./routes/investorRoutes'));
+app.use('/api/events', require('./routes/events'));
 
 // Basic route for testing
 app.get('/', (req, res) => {

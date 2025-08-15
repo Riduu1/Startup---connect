@@ -5,12 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Plus, Calendar } from "lucide-react";
+import EventModal from "@/components/cards/EventModal";
 
 const Events = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [timeFilter, setTimeFilter] = useState("all");
-
   // Mock data - replace with actual data from database when connected
   const events = [
     {
@@ -86,22 +83,27 @@ const Events = () => {
       price: "$20"
     }
   ];
+  const [modalOpen, setModalOpen] = useState(false);
+  const [allEvents, setAllEvents] = useState(events);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("all");
 
   const types = ["all", "Pitch Competition", "Conference", "Networking", "Showcase", "Demo Day", "Meetup"];
   const timeFilters = ["all", "upcoming", "past"];
 
-  const filteredEvents = events.filter(event => {
+  const filteredEvents = allEvents.filter(event => {
     const eventDate = new Date(event.date);
     const today = new Date();
     const isUpcoming = eventDate > today;
 
     const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchTerm.toLowerCase());
+      event.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || event.type === typeFilter;
-    const matchesTime = timeFilter === "all" || 
-                       (timeFilter === "upcoming" && isUpcoming) ||
-                       (timeFilter === "past" && !isUpcoming);
-    
+    const matchesTime = timeFilter === "all" ||
+      (timeFilter === "upcoming" && isUpcoming) ||
+      (timeFilter === "past" && !isUpcoming);
+
     return matchesSearch && matchesType && matchesTime;
   });
 
@@ -140,13 +142,13 @@ const Events = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-4 items-center">
                 <div className="flex items-center gap-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Filters:</span>
                 </div>
-                
+
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="w-44">
                     <SelectValue placeholder="Event Type" />
@@ -159,7 +161,7 @@ const Events = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={timeFilter} onValueChange={setTimeFilter}>
                   <SelectTrigger className="w-32">
                     <SelectValue placeholder="Time" />
@@ -179,13 +181,44 @@ const Events = () => {
             <h2 className="text-2xl font-semibold">
               {filteredEvents.length} Event{filteredEvents.length !== 1 ? 's' : ''} Found
             </h2>
-            <Button variant="success" className="hidden md:flex">
+            <Button
+              variant="success"
+              onClick={() => {
+                if (!localStorage.getItem("token")) {
+                  window.location.href = "/login";
+                } else {
+                  setModalOpen(true);
+                }
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
-              Create Event
+              Make Event
             </Button>
           </div>
 
           {/* Events Grid */}
+          <EventModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            onSubmit={async (form) => {
+              // Save to backend
+              try {
+                const res = await fetch("/api/events", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                  body: JSON.stringify(form),
+                });
+                if (!res.ok) throw new Error("Failed to create event");
+                const saved = await res.json();
+                setAllEvents([saved, ...allEvents]);
+              } catch (err) {
+                alert("Error creating event");
+              }
+            }}
+          />
           {filteredEvents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredEvents.map((event) => (
