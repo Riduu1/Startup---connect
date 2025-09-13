@@ -26,7 +26,7 @@ const Dashboard = () => {
       setLoading(false);
       return;
     }
-    fetch("/api/auth/me", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -76,7 +76,7 @@ const Dashboard = () => {
     if (!user) return;
     const token = localStorage.getItem("token");
     if (user.role === "Startup Owner") {
-      fetch("/api/startups", {
+      fetch(`${import.meta.env.VITE_API_URL}/api/startups`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
@@ -86,7 +86,7 @@ const Dashboard = () => {
           }
         });
     } else if (user.role === "Investor") {
-      fetch("/api/investors", {
+      fetch(`${import.meta.env.VITE_API_URL}/api/investors`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())
@@ -103,7 +103,7 @@ const Dashboard = () => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("/api/startups", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/startups`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +129,7 @@ const Dashboard = () => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch("/api/investors", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/investors`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -38,7 +38,7 @@ const Startups = () => {
   // Fetch real startups from backend
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/startups", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/startups`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())

@@ -15,7 +15,10 @@ connectDB();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: "https://startup-connect-frontend-8ly8.onrender.com",
+    credentials: true
+}));
 app.use(passport.initialize());
 
 // Configure Google OAuth Strategy
