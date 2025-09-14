@@ -174,9 +174,7 @@ const Startups = () => {
               {filteredStartups.map((startup) => (
                 <div key={startup.id}>
                   <StartupCard startup={startup} />
-                  {/* <Button variant="outline" className="mt-2 w-full" onClick={() => setShowDetailsId(startup.id)}>
-                    Show Details
-                  </Button> */}
+                 
                   {/* Details Modal/Section */}
                   {showDetailsId === startup.id && (
                     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
