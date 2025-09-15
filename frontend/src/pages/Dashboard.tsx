@@ -286,13 +286,45 @@ const Dashboard = () => {
                     <div className="space-y-4">
                       {myStartups.map((startup) => (
                         <div key={startup._id} className="p-4 border rounded-lg bg-white/80">
-                          <div className="font-bold text-lg">{startup.name}</div>
-                          <div className="text-muted-foreground">{startup.industry} | {startup.stage}</div>
-                          <div>{startup.description}</div>
-                          <div className="text-xs text-muted-foreground">{startup.location} | Team: {startup.teamSize} | Funding: {startup.fundingGoal}</div>
-                          {startup.website && (
-                            <a href={startup.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">{startup.website}</a>
-                          )}
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="font-bold text-lg">{startup.name}</div>
+                              <div className="text-muted-foreground">{startup.industry} | {startup.stage}</div>
+                              <div>{startup.description}</div>
+                              <div className="text-xs text-muted-foreground">{startup.location} | Team: {startup.teamSize} | Funding: {startup.fundingGoal}</div>
+                              {startup.website && (
+                                <a href={startup.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">{startup.website}</a>
+                              )}
+                            </div>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={async () => {
+                                if (window.confirm('Are you sure you want to delete this startup?')) {
+                                  const token = localStorage.getItem("token");
+                                  try {
+                                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/startups/${startup._id}`, {
+                                      method: 'DELETE',
+                                      headers: {
+                                        Authorization: `Bearer ${token}`,
+                                      },
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                      toast({ title: "Startup Deleted", description: "Your startup profile has been removed.", variant: "default" });
+                                      setMyStartups(prev => prev.filter(s => s._id !== startup._id));
+                                    } else {
+                                      toast({ title: "Error", description: data.message || "Failed to delete startup.", variant: "destructive" });
+                                    }
+                                  } catch (error) {
+                                    toast({ title: "Network Error", description: "Could not connect to server.", variant: "destructive" });
+                                  }
+                                }
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -374,10 +406,42 @@ const Dashboard = () => {
                 <CardContent>
                   {myInvestor ? (
                     <div className="p-4 border rounded-lg bg-white/80">
-                      <div className="font-bold text-lg">{myInvestor.name}</div>
-                      <div className="text-muted-foreground">{myInvestor.type} | {myInvestor.location}</div>
-                      <div>{myInvestor.bio}</div>
-                      <div className="text-xs text-muted-foreground">Industries: {myInvestor.industries?.join(", ")} | Portfolio: {myInvestor.portfolio} | Range: {myInvestor.investmentRange}</div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-bold text-lg">{myInvestor.name}</div>
+                          <div className="text-muted-foreground">{myInvestor.type} | {myInvestor.location}</div>
+                          <div>{myInvestor.bio}</div>
+                          <div className="text-xs text-muted-foreground">Industries: {myInvestor.industries?.join(", ")} | Portfolio: {myInvestor.portfolio} | Range: {myInvestor.investmentRange}</div>
+                        </div>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to delete your investor profile?')) {
+                              const token = localStorage.getItem("token");
+                              try {
+                                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/investors/${myInvestor._id}`, {
+                                  method: 'DELETE',
+                                  headers: {
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  toast({ title: "Profile Deleted", description: "Your investor profile has been removed.", variant: "default" });
+                                  setMyInvestor(null);
+                                } else {
+                                  toast({ title: "Error", description: data.message || "Failed to delete profile.", variant: "destructive" });
+                                }
+                              } catch (error) {
+                                toast({ title: "Network Error", description: "Could not connect to server.", variant: "destructive" });
+                              }
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-muted-foreground">No investor profile submitted yet.</div>
