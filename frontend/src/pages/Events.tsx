@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import EventCard from "@/components/cards/EventCard";
 import { Button } from "@/components/ui/button";
@@ -8,83 +8,23 @@ import { Search, Filter, Plus, Calendar } from "lucide-react";
 import EventModal from "@/components/cards/EventModal";
 
 const Events = () => {
-  // Mock data - replace with actual data from database when connected
-  const events = [
-    {
-      id: "1",
-      title: "Startup Pitch Night SF",
-      description: "Join us for an evening of innovative startup pitches and networking with top investors in the Bay Area.",
-      type: "Pitch Competition",
-      date: "2024-09-15",
-      time: "6:00 PM - 9:00 PM",
-      location: "San Francisco, CA",
-      attendees: 45,
-      maxAttendees: 100,
-      price: "Free"
-    },
-    {
-      id: "2",
-      title: "AI & Machine Learning Summit",
-      description: "Deep dive into the latest AI trends with industry leaders and tech innovators. Network with AI startups and investors.",
-      type: "Conference",
-      date: "2024-09-20",
-      time: "9:00 AM - 5:00 PM",
-      location: "Austin, TX",
-      attendees: 120,
-      maxAttendees: 200,
-      price: "$150"
-    },
-    {
-      id: "3",
-      title: "Women in Tech Networking",
-      description: "Empowering women entrepreneurs and connecting them with female investors and mentors in the tech industry.",
-      type: "Networking",
-      date: "2024-09-25",
-      time: "7:00 PM - 10:00 PM",
-      location: "New York, NY",
-      attendees: 67,
-      maxAttendees: 80,
-      price: "$25"
-    },
-    {
-      id: "4",
-      title: "HealthTech Innovation Showcase",
-      description: "Discover the latest healthcare technology startups and connect with specialized healthcare investors.",
-      type: "Showcase",
-      date: "2024-10-05",
-      time: "2:00 PM - 6:00 PM",
-      location: "Boston, MA",
-      attendees: 35,
-      maxAttendees: 150,
-      price: "$75"
-    },
-    {
-      id: "5",
-      title: "Virtual Reality Startup Demo Day",
-      description: "Experience cutting-edge VR technologies and meet the entrepreneurs building the metaverse.",
-      type: "Demo Day",
-      date: "2024-10-12",
-      time: "1:00 PM - 5:00 PM",
-      location: "Seattle, WA",
-      attendees: 28,
-      maxAttendees: 60,
-      price: "Free"
-    },
-    {
-      id: "6",
-      title: "Sustainable Tech Investor Meetup",
-      description: "Focus on clean technology and sustainable startups with impact investors and green tech enthusiasts.",
-      type: "Meetup",
-      date: "2024-08-10",
-      time: "6:30 PM - 9:00 PM",
-      location: "Portland, OR",
-      attendees: 42,
-      maxAttendees: 70,
-      price: "$20"
-    }
-  ];
   const [modalOpen, setModalOpen] = useState(false);
-  const [allEvents, setAllEvents] = useState(events);
+  const [allEvents, setAllEvents] = useState([]);
+  // Fetch events from backend on mount
+  React.useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/events`);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setAllEvents(data.data);
+        }
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchEvents();
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
@@ -212,8 +152,17 @@ const Events = () => {
                   body: JSON.stringify(form),
                 });
                 if (!res.ok) throw new Error("Failed to create event");
-                const saved = await res.json();
-                setAllEvents([saved, ...allEvents]);
+                // After adding, re-fetch events from backend
+                const fetchEvents = async () => {
+                  try {
+                    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/events`);
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.data)) {
+                      setAllEvents(data.data);
+                    }
+                  } catch (err) {}
+                };
+                await fetchEvents();
               } catch (err) {
                 alert("Error creating event");
               }

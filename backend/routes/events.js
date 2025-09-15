@@ -21,9 +21,9 @@ router.post("/", protect, async (req, res) => {
 router.get("/", async (req, res) => {
     try {
         const events = await Event.find();
-        res.json(events);
+        res.json({ success: true, data: events });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
