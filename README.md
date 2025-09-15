@@ -1,98 +1,191 @@
-# Startup-Connect
 
-## Description
-Startup-Connect is a full-stack web application that connects innovative startups with potential investors. It features secure authentication, Google OAuth, and a modern, responsive UI for managing startup and investor profiles.
+# 🚀 Startup-Connect – Bridging Startups & Investors
 
-## Features
-- Startup and investor registration/login
-- Google OAuth authentication
-- JWT-based session management
-- Profile management for startups and investors
-- Dashboard with real user data
-- Responsive design with Tailwind CSS
+Startup-Connect is a full-stack MERN (MongoDB, Express.js, React.js, Node.js) platform that connects innovative startups with potential investors. It features secure authentication (JWT & Google OAuth), profile management, dashboards, and a modern, responsive UI built with Tailwind CSS.
 
-## Tech Stack
-- **Frontend:** React (Vite), TypeScript, Tailwind CSS
-- **Backend:** Node.js, Express
-- **Database:** MongoDB (Mongoose)
-- **Auth:** JWT, Google OAuth (passport-google-oauth20)
+---
 
-## Installation & Setup
+## 🌐 Live Demo
 
-### Prerequisites
-- Node.js (v18+ recommended)
-- npm
-- MongoDB (local or Atlas)
+**Deployed Applications:**
+- **Frontend:** [https://startup-connect-frontend-8ly8.onrender.com](https://startup-connect-frontend-8ly8.onrender.com)
+- **Backend API:** [https://startup-connect-xb20.onrender.com](https://startup-connect-xb20.onrender.com)
 
-### 1. Clone the repository
+---
+
+## 🚀 Features
+
+### 🏢 Startup Features
+- **Register/Login** – Secure authentication for startups
+- **Google OAuth** – Quick sign-in with Google
+- **Profile Management** – Create and update startup profiles
+- **Dashboard** – View submitted startups, manage team, funding, and more
+- **Event Participation** – Join and create startup events
+
+### 💼 Investor Features
+- **Register/Login** – Secure authentication for investors
+- **Profile Management** – Create and update investor profiles
+- **Dashboard** – View and manage investment interests
+- **Browse Startups** – Discover and filter startups by industry, stage, and location
+
+### 🔒 Security & Core Features
+- **JWT Authentication** – Secure sessions for all users
+- **Google OAuth** – Fast, secure login
+- **Role-based Dashboards** – Separate views for startups and investors
+- **Responsive UI** – Built with Tailwind CSS
+- **RESTful API** – Modular backend with Express.js
+
+---
+
+## 📦 Tech Stack
+
+### Frontend
+- **React 18** (Vite)
+- **TypeScript**
+- **Tailwind CSS**
+- **React Router DOM**
+
+### Backend
+- **Node.js**
+- **Express.js**
+- **MongoDB** (Mongoose ODM)
+- **JWT**
+- **Google OAuth** (passport-google-oauth20)
+- **bcryptjs**
+- **dotenv**
+- **CORS**
+
+---
+
+## 🏗️ Project Structure
+
+```
+founder-invest-link/
+├── backend/                # Backend API
+│   ├── config/             # Database configuration
+│   ├── controllers/        # Business logic
+│   ├── middleware/         # Auth & validation
+│   ├── models/             # Database schemas
+│   ├── routes/             # API endpoints
+│   ├── server.js           # Main server file
+│   └── .env.example        # Environment template
+├── frontend/               # Frontend app
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/          # Page components
+│   │   ├── hooks/          # Custom hooks
+│   │   ├── lib/            # Utility functions
+│   │   └── assets/         # Images & icons
+│   └── package.json
+├── public/                 # Static files
+├── package.json            # Monorepo root
+└── README.md
+```
+
+---
+
+## 🛠 Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| express | Backend server framework |
+| mongoose | MongoDB object modeling |
+| jsonwebtoken | JWT authentication |
+| bcryptjs | Password hashing |
+| cors | Cross-origin resource sharing |
+| dotenv | Environment variable management |
+| passport-google-oauth20 | Google OAuth authentication |
+| react | Frontend UI library |
+| react-router-dom | Client-side routing |
+| tailwindcss | CSS framework |
+| typescript | Type safety |
+| @vitejs/plugin-react-swc | Vite React plugin |
+
+---
+
+## 📋 Requirements
+
+- **Node.js** v18+
+- **MongoDB** (local or Atlas)
+- **Google OAuth credentials**
+
+---
+
+## 🔧 Installation & Setup
+
+### 1️⃣ Clone the repository
 ```bash
 git clone https://github.com/Riduu1/Startup---connect.git
 cd Startup---connect
 ```
 
-### 2. Install dependencies
-
-#### Backend
+### 2️⃣ Install dependencies for backend
 ```bash
 cd backend
 npm install
 ```
 
-#### Frontend
+### 3️⃣ Install dependencies for frontend
 ```bash
 cd ../frontend
 npm install
 ```
 
-### 3. Environment Variables
-Create a `.env` file in the `backend` folder with:
-```
-MONGODB_URI=your_mongodb_uri
-JWT_SECRET=your_jwt_secret
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
-PORT=5000
-```
+---
 
-### 4. Running the Application Locally
+## ▶️ Running the Application Locally
 
-#### Start Backend
+### 1️⃣ Start the Backend Server
 ```bash
 cd backend
 npm run dev
 ```
+Backend runs on http://localhost:5000
 
-#### Start Frontend
+### 2️⃣ Start the Frontend
 ```bash
 cd frontend
 npm run dev
 ```
+Frontend runs on http://localhost:8080
 
-Frontend will run on [http://localhost:8080](http://localhost:8080) and backend on [http://localhost:5000](http://localhost:5000).
+---
 
-## Dependencies & Requirements
+## 🎨 UI Components
 
-- express
-- mongoose
-- dotenv
-- cors
-- passport
-- passport-google-oauth20
-- jsonwebtoken
-- bcryptjs
-- react
-- react-dom
-- react-router-dom
-- tailwindcss
-- @vitejs/plugin-react-swc
-- typescript
+### Frontend Components
+- **Navbar** – Navigation bar with login/logout
+- **Dashboard** – Role-based dashboard for startups/investors
+- **Cards** – Startup, investor, and event cards
+- **Forms** – Registration, login, profile, and event forms
+- **Modals** – Event creation and profile editing
 
-## Usage
+---
 
-1. Register or login as a startup or investor.
-2. Use Google OAuth for quick sign-in.
-3. Access your dashboard to view and manage your profile.
+## 🔐 Security Features
 
-## License
-MIT
+- **JWT Authentication** – Secure user sessions
+- **Google OAuth** – Fast, secure login
+- **Password Hashing** – bcryptjs encryption
+- **CORS Protection** – Cross-origin request handling
+- **Environment Variables** – Sensitive data protection
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repo
+2. Create a new branch (`git checkout -b feature-name`)
+3. Commit your changes (`git commit -m 'Add feature'`)
+4. Push to your branch (`git push origin feature-name`)
+5. Open a Pull Request
+
+---
+
+## 🙏 Acknowledgements
+- [React](https://react.dev/)
+- [Express](https://expressjs.com/)
+- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Vite](https://vitejs.dev/)
+
