@@ -70,6 +70,7 @@ const Dashboard = () => {
   // State for submitted startups/investors
   const [myStartups, setMyStartups] = useState<any[]>([]);
   const [myInvestor, setMyInvestor] = useState<any>(null);
+  const [receivedPitches, setReceivedPitches] = useState<any[]>([]);
 
   // Fetch submitted startups/investor profile for the logged-in user
   useEffect(() => {
@@ -93,6 +94,17 @@ const Dashboard = () => {
         .then((data) => {
           if (data.success && Array.isArray(data.data)) {
             setMyInvestor(data.data.find((i) => i.user._id === user._id));
+          }
+        });
+
+      // Fetch received pitches
+      fetch(`${import.meta.env.VITE_API_URL}/api/investors/me/pitches`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.data)) {
+            setReceivedPitches(data.data);
           }
         });
     }
@@ -405,44 +417,62 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   {myInvestor ? (
-                    <div className="p-4 border rounded-lg bg-white/80">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-bold text-lg">{myInvestor.name}</div>
-                          <div className="text-muted-foreground">{myInvestor.type} | {myInvestor.location}</div>
-                          <div>{myInvestor.bio}</div>
-                          <div className="text-xs text-muted-foreground">Industries: {myInvestor.industries?.join(", ")} | Portfolio: {myInvestor.portfolio} | Range: {myInvestor.investmentRange}</div>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={async () => {
-                            if (window.confirm('Are you sure you want to delete your investor profile?')) {
-                              const token = localStorage.getItem("token");
-                              try {
-                                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/investors/${myInvestor._id}`, {
-                                  method: 'DELETE',
-                                  headers: {
-                                    Authorization: `Bearer ${token}`,
-                                  },
-                                });
-                                const data = await res.json();
-                                if (data.success) {
-                                  toast({ title: "Profile Deleted", description: "Your investor profile has been removed.", variant: "default" });
-                                  setMyInvestor(null);
-                                } else {
-                                  toast({ title: "Error", description: data.message || "Failed to delete profile.", variant: "destructive" });
+                    <>
+                      <div className="p-4 border rounded-lg bg-white/80">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-bold text-lg">{myInvestor.name}</div>
+                            <div className="text-muted-foreground">{myInvestor.type} | {myInvestor.location}</div>
+                            <div>{myInvestor.bio}</div>
+                            <div className="text-xs text-muted-foreground">Industries: {myInvestor.industries?.join(", ")} | Portfolio: {myInvestor.portfolio} | Range: {myInvestor.investmentRange}</div>
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={async () => {
+                              if (window.confirm('Are you sure you want to delete your investor profile?')) {
+                                const token = localStorage.getItem("token");
+                                try {
+                                  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/investors/${myInvestor._id}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                  });
+                                  const data = await res.json();
+                                  if (data.success) {
+                                    toast({ title: "Profile Deleted", description: "Your investor profile has been removed.", variant: "default" });
+                                    setMyInvestor(null);
+                                  } else {
+                                    toast({ title: "Error", description: data.message || "Failed to delete profile.", variant: "destructive" });
+                                  }
+                                } catch (error) {
+                                  toast({ title: "Network Error", description: "Could not connect to server.", variant: "destructive" });
                                 }
-                              } catch (error) {
-                                toast({ title: "Network Error", description: "Could not connect to server.", variant: "destructive" });
                               }
-                            }
-                          }}
-                        >
-                          Delete
-                        </Button>
+                            }}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                      <div className="mt-8">
+                        <h3 className="text-lg font-semibold mb-2">Received Pitches</h3>
+                        {receivedPitches.length > 0 ? (
+                          <div className="space-y-4">
+                            {receivedPitches.map((pitch, idx) => (
+                              <div key={idx} className="border rounded-lg p-4 bg-white/80">
+                                <div className="font-bold">{pitch.name} <span className="text-xs text-muted-foreground">({pitch.email})</span></div>
+                                <div className="text-sm mt-1">{pitch.message}</div>
+                                <div className="text-xs text-muted-foreground mt-2">Submitted: {pitch.submittedAt ? new Date(pitch.submittedAt).toLocaleString() : "-"}</div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground">No pitches received yet.</div>
+                        )}
+                      </div>
+                    </>
                   ) : (
                     <div className="text-muted-foreground">No investor profile submitted yet.</div>
                   )}

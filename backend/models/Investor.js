@@ -9,6 +9,15 @@ const investorSchema = new mongoose.Schema({
     industries: [String],
     investmentRange: String,
     portfolio: Number,
+    pitches: [
+        {
+            name: String,
+            email: String,
+            message: String,
+            submittedAt: { type: Date, default: Date.now },
+            user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        }
+    ],
     createdAt: { type: Date, default: Date.now }
 });
 

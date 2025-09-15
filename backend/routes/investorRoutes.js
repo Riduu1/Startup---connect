@@ -1,6 +1,6 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
-const { createInvestor, getInvestors } = require('../controllers/investorController');
+const { createInvestor, getInvestors, submitPitch, getMyPitches } = require('../controllers/investorController');
 const Investor = require('../models/Investor');
 
 const router = express.Router();
@@ -9,6 +9,12 @@ const router = express.Router();
 router.post('/', protect, createInvestor);
 // Get all investors (public)
 router.get('/', getInvestors);
+
+// Submit a pitch to an investor (must be logged in)
+router.post('/:id/pitch', protect, submitPitch);
+
+// Get pitches for the logged-in investor
+router.get('/me/pitches', protect, getMyPitches);
 
 // Delete investor profile (protected)
 router.delete('/:id', protect, async (req, res) => {

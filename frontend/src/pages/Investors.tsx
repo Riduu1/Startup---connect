@@ -4,7 +4,7 @@ import InvestorCard from "@/components/cards/InvestorCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Plus } from "lucide-react";
+import { Search, Filter, Plus, MapPin, User, Info } from "lucide-react";
 
 const Investors = () => {
   // Page is now public; anyone can view
@@ -15,6 +15,12 @@ const Investors = () => {
   // State for investors
   const [realInvestors, setRealInvestors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvestor, setSelectedInvestor] = useState<any>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pitchForm, setPitchForm] = useState({ name: "", email: "", message: "" });
+  const [pitchLoading, setPitchLoading] = useState(false);
+  const [pitchSuccess, setPitchSuccess] = useState("");
+  const [pitchError, setPitchError] = useState("");
 
   // Dummy data
   const dummyInvestors = [
@@ -177,10 +183,42 @@ const Investors = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredInvestors.map((investor) => (
                 <div key={investor.id}>
-                  <InvestorCard investor={investor} />
-                  {investor.user && (
-                    <div className="mt-2 text-xs text-muted-foreground">Submitted by: {investor.user.name || investor.user.email}</div>
-                  )}
+                  <div className="bg-white rounded-lg shadow-card p-4 flex flex-col gap-2">
+                    <div className="font-bold text-lg mb-1 flex items-center gap-2">
+                      <User className="h-5 w-5 text-accent" />
+                      {investor.name}
+                    </div>
+                    <div className="text-muted-foreground text-sm flex items-center gap-2">
+                      <span className="flex items-center gap-1">
+                        <User className="h-4 w-4 text-primary" /> {investor.type}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4 text-success" /> {investor.location}
+                      </span>
+                    </div>
+                    <div className="text-sm flex items-center gap-2 mt-1">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                      {investor.bio?.slice(0, 60)}{investor.bio && investor.bio.length > 60 ? "..." : ""}
+                    </div>
+                    <Button
+                      variant="accent"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => {
+                        if (!localStorage.getItem("token")) {
+                          window.location.href = "/login";
+                          return;
+                        }
+                        setSelectedInvestor(investor);
+                        setModalOpen(true);
+                        setPitchForm({ name: "", email: "", message: "" });
+                        setPitchSuccess("");
+                        setPitchError("");
+                      }}
+                    >
+                      Show Details
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -196,6 +234,92 @@ const Investors = () => {
               }}>
                 Clear Filters
               </Button>
+            </div>
+          )}
+
+          {/* Investor Details Modal */}
+          {modalOpen && selectedInvestor && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+                <button
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                  onClick={() => setModalOpen(false)}
+                >
+                  ×
+                </button>
+                <h2 className="text-2xl font-bold mb-2">{selectedInvestor.name}</h2>
+                <div className="mb-2 text-muted-foreground">{selectedInvestor.type} | {selectedInvestor.location}</div>
+                <div className="mb-2">{selectedInvestor.bio}</div>
+                <div className="mb-2 text-xs text-muted-foreground">
+                  Industries: {selectedInvestor.industries?.join(", ")}<br />
+                  Portfolio: {selectedInvestor.portfolio} | Range: {selectedInvestor.investmentRange}
+                </div>
+                <hr className="my-4" />
+                <h3 className="text-lg font-semibold mb-2">Pitch Your Startup</h3>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setPitchLoading(true);
+                    setPitchSuccess("");
+                    setPitchError("");
+                    const token = localStorage.getItem("token");
+                    if (!token) {
+                      window.location.href = "/login";
+                      return;
+                    }
+                    try {
+                      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/investors/${selectedInvestor.id}/pitch`, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${token}`
+                        },
+                        body: JSON.stringify(pitchForm),
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        setPitchSuccess("Pitch submitted successfully!");
+                        setPitchForm({ name: "", email: "", message: "" });
+                      } else {
+                        setPitchError(data.message || "Failed to submit pitch.");
+                      }
+                    } catch (err) {
+                      setPitchError("Network error. Please try again.");
+                    }
+                    setPitchLoading(false);
+                  }}
+                  className="space-y-3"
+                >
+                  <input
+                    type="text"
+                    placeholder="Your Name"
+                    className="w-full border rounded px-3 py-2"
+                    value={pitchForm.name}
+                    onChange={e => setPitchForm({ ...pitchForm, name: e.target.value })}
+                    required
+                  />
+                  <input
+                    type="email"
+                    placeholder="Your Email"
+                    className="w-full border rounded px-3 py-2"
+                    value={pitchForm.email}
+                    onChange={e => setPitchForm({ ...pitchForm, email: e.target.value })}
+                    required
+                  />
+                  <textarea
+                    placeholder="Pitch Message"
+                    className="w-full border rounded px-3 py-2"
+                    value={pitchForm.message}
+                    onChange={e => setPitchForm({ ...pitchForm, message: e.target.value })}
+                    required
+                  />
+                  <Button type="submit" variant="accent" disabled={pitchLoading} className="w-full">
+                    {pitchLoading ? "Submitting..." : "Submit Pitch"}
+                  </Button>
+                  {pitchSuccess && <div className="text-green-600 text-sm mt-2">{pitchSuccess}</div>}
+                  {pitchError && <div className="text-red-600 text-sm mt-2">{pitchError}</div>}
+                </form>
+              </div>
             </div>
           )}
         </div>
