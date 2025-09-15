@@ -160,7 +160,7 @@ const Events = () => {
                     if (data.success && Array.isArray(data.data)) {
                       setAllEvents(data.data);
                     }
-                  } catch (err) {}
+                  } catch (err) { }
                 };
                 await fetchEvents();
               } catch (err) {

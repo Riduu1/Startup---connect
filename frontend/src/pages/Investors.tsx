@@ -35,17 +35,22 @@ const Investors = () => {
   // Fetch real investors from backend
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("/api/investors", {
+    fetch(`${import.meta.env.VITE_API_URL}/api/investors`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.data)) {
           setRealInvestors(data.data);
+        } else {
+          console.error('Invalid response format:', data);
         }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((error) => {
+        console.error('Failed to fetch investors:', error);
+        setLoading(false);
+      });
   }, []);
 
   const types = ["all", "Angel", "VC", "Fund"];
